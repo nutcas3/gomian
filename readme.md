@@ -1,8 +1,4 @@
-Okay, here's a comprehensive documentation draft for a Go Circuit Breaker, incorporating all the discussed features. This is structured like a typical library's `README.md` or a dedicated `docs` page.
-
------
-
-# Go Circuit Breaker Library
+# Gomian - Go Circuit Breaker Library
 
 A robust and configurable circuit breaker library for Go, designed to enhance the resilience of your applications by preventing cascading failures in distributed systems. Protects your services from over-stressing unhealthy dependencies and provides graceful degradation during outages.
 
@@ -101,7 +97,7 @@ When the circuit is `Open`, requests are short-circuited. The circuit breaker pr
 ## 4\. Installation
 
 ```bash
-go get https://github.com/nutcas3/gomian # Replace with actual path
+go get github.com/nutcase/gomian
 ```
 
 ## 5\. Usage
@@ -118,7 +114,7 @@ import (
 	"net/http"
 	"time"
 
-	cb "https://github.com/nutcas3/gomian" // Replace with actual path
+	"github.com/nutcase/gomian"
 )
 
 func callExternalService() error {
@@ -137,20 +133,20 @@ func callExternalService() error {
 
 func main() {
 	// Configure the circuit breaker
-	settings := cb.Settings{
-		Name:            "MyServiceBreaker",
-		FailureThreshold: cb.FailureRateThreshold(0.6, 10), // 60% failure rate over 10 requests
-		SuccessThreshold: 3,                               // 3 consecutive successes to go from Half-Open to Closed
-		Timeout:          5 * time.Second,                 // Stay Open for 5 seconds
-		RollingWindow:    10 * time.Second,                // Calculate failure rate over 10 seconds
-		MinimumRequestVolume: 5,                           // Need at least 5 requests in window to calculate rate
+	settings := gomian.Settings{
+		Name:                "MyServiceBreaker",
+		FailureThreshold:     gomian.NewFailureRateThreshold(0.6, 10), // 60% failure rate over 10 requests
+		HalfOpenSuccessThreshold: 3,                               // 3 consecutive successes to go from Half-Open to Closed
+		Timeout:              5 * time.Second,                 // Stay Open for 5 seconds
+		RollingWindow:        10 * time.Second,                // Calculate failure rate over 10 seconds
+		MinimumRequestVolume: 5                           // Need at least 5 requests in window to calculate rate
 	}
 
 	// Create a new circuit breaker
-	breaker := cb.NewCircuitBreaker(settings)
+	breaker := gomian.NewCircuitBreaker(settings)
 
 	// Register a callback for state changes
-	breaker.OnStateChange(func(name string, oldState, newState cb.State) {
+	breaker.OnStateChange(func(name string, oldState, newState gomian.State) {
 		log.Printf("Circuit Breaker '%s' changed state: %s -> %s\n", name, oldState, newState)
 	})
 
@@ -163,7 +159,7 @@ func main() {
 		})
 
 		if err != nil {
-			if errors.Is(err, cb.ErrCircuitOpen) {
+			if errors.Is(err, gomian.ErrCircuitOpen) {
 				log.Printf("Circuit is OPEN! Request %d rejected.\n", i)
 			} else {
 				log.Printf("Request %d failed with error: %v\n", i, err)
@@ -181,33 +177,33 @@ func main() {
 
 ### Configuration
 
-The `cb.Settings` struct allows fine-grained control:
+The `gomian.Settings` struct allows fine-grained control:
 
 ```go
 type Settings struct {
-	Name                 string                         // A unique name for this breaker (useful for metrics/logging)
-	FailureThreshold     FailureThresholdType           // How to determine when to trip the circuit (e.g., ConsecutiveFailures, FailureRateThreshold)
-	SuccessThreshold     uint64                         // Number of consecutive successes required to close from Half-Open
-	Timeout              time.Duration                  // Duration the circuit stays Open
-	RollingWindow        time.Duration                  // Time window for failure rate calculation
-	MinimumRequestVolume uint64                         // Min requests in window before failure rate applies
-	ResetTimeout         time.Duration                  // (Optional) Reset failure counter in Closed state after this duration of no failures
-	IsFailure            func(error) bool               // Custom function to determine if an error counts as a failure.
-	IgnoredErrors        []error                        // List of errors to explicitly ignore (won't count as failures)
+	Name                    string                 // A unique name for this breaker (useful for metrics/logging)
+	FailureThreshold        FailureThresholdType   // How to determine when to trip the circuit (e.g., ConsecutiveFailuresThreshold, FailureRateThreshold)
+	HalfOpenSuccessThreshold uint64                // Number of consecutive successes required to close from Half-Open
+	Timeout                 time.Duration          // Duration the circuit stays Open
+	RollingWindow           time.Duration          // Time window for failure rate calculation
+	MinimumRequestVolume    uint64                 // Min requests in window before failure rate applies
+	ResetTimeout            time.Duration          // (Optional) Reset failure counter in Closed state after this duration of no failures
+	IsFailure               func(error) bool       // Custom function to determine if an error counts as a failure
+	IgnoredErrors           []error                // List of errors to explicitly ignore (won't count as failures)
 }
 ```
 
 **FailureThresholdType:**
 
-  * `cb.ConsecutiveFailures(n uint64)`: Trips after `n` consecutive failures.
-  * `cb.FailureRateThreshold(rate float64, samples uint64)`: Trips if `rate` (e.g., 0.6 for 60%) is exceeded over `samples` requests within the `RollingWindow`.
+  * `gomian.NewConsecutiveFailuresThreshold(n uint64)`: Trips after `n` consecutive failures.
+  * `gomian.NewFailureRateThreshold(rate float64, samples uint64)`: Trips if `rate` (e.g., 0.6 for 60%) is exceeded over `samples` requests within the `RollingWindow`.
 
 ### Monitoring & Callbacks
 
 Register functions to react to circuit breaker events:
 
 ```go
-breaker.OnStateChange(func(name string, oldState, newState cb.State) {
+breaker.OnStateChange(func(name string, oldState, newState gomian.State) {
 	log.Printf("Circuit Breaker '%s' changed state: %s -> %s\n", name, oldState, newState)
 	// Here you could send metrics to Prometheus, log to an external system, etc.
 })
@@ -229,7 +225,7 @@ The `Execute` method takes a `context.Context` to allow for cancellation and dea
 ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 defer cancel()
 
-err := breaker.Execute(func() error {
+err := breaker.ExecuteContext(ctx, func(ctx context.Context) error {
 	// Your service call that respects ctx
 	req, _ := http.NewRequestWithContext(ctx, "GET", "http://example.com/api", nil)
 	resp, err := http.DefaultClient.Do(req)
@@ -250,18 +246,24 @@ func main() {
     // ... breaker setup ...
 
     for i := 0; i < 20; i++ {
-        result, err := breaker.ExecuteWithFallback(func() (string, error) {
-            log.Println("Attempting to get data from external service...")
-            // Simulate service call
-            if i % 3 == 0 { // Simulate intermittent failures
-                return "", errors.New("simulated service error")
+        var result string
+        err := breaker.ExecuteWithFallback(
+            func() error {
+                log.Println("Attempting to get data from external service...")
+                // Simulate service call
+                if i % 3 == 0 { // Simulate intermittent failures
+                    return errors.New("simulated service error")
+                }
+                result = "Real Data"
+                return nil
+            }, 
+            func(cbErr error) error {
+                log.Printf("Circuit Open or primary call failed. Falling back! Breaker error: %v\n", cbErr)
+                // This is your fallback logic
+                result = "Cached Data"
+                return nil
             }
-            return "Real Data", nil
-        }, func(cbErr error) (string, error) {
-            log.Printf("Circuit Open or primary call failed. Falling back! Breaker error: %v\n", cbErr)
-            // This is your fallback logic
-            return "Cached Data", nil
-        })
+        )
 
         if err != nil {
             log.Printf("Request %d failed with unhandled error: %v\n", i, err)
@@ -297,6 +299,26 @@ Contributions are welcome\! Please see `CONTRIBUTING.md` (if applicable) for gui
 
 ## 8\. License
 
-This library is released under the [MIT License](https://www.google.com/search?q=LICENSE).
+This library is released under the MIT License.
 
------
+## 9\. Project Structure
+
+```
+gomian/
+├── circuitbreaker.go    # Main circuit breaker implementation
+├── settings.go         # Configuration settings
+├── state.go            # Circuit breaker state definitions
+├── errors.go           # Custom error types
+├── callbacks.go        # Event callback system
+├── internal/
+│   ├── counter/        # Failure/success counting implementations
+│   │   ├── counter.go
+│   │   └── counter_test.go
+│   └── state_machine/  # State transition logic
+│       └── state_machine.go
+└── examples/
+    ├── basic/          # Basic usage example
+    │   └── main.go
+    └── fallback/       # Example with fallback handling
+        └── main.go
+```
