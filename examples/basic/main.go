@@ -23,8 +23,6 @@ func simulateExternalService() error {
 }
 
 func main() {
-	// Seed the random number generator
-	rand.Seed(time.Now().UnixNano())
 
 	// Configure the circuit breaker
 	settings := gomian.Settings{
