@@ -322,3 +322,62 @@ gomian/
     └── fallback/       # Example with fallback handling
         └── main.go
 ```
+
+## 10\. Roadmap and Implementation Status
+
+The following table outlines the implementation status of the Gomian circuit breaker library based on the planned roadmap:
+
+### Phase 1: Foundational Design & Core Logic
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Core Structures and States | ✅ Completed | Implemented in `state.go` and `circuitbreaker.go` |
+| Settings Struct | ✅ Completed | Implemented in `settings.go` |
+| State Machine Logic | ✅ Completed | Implemented in `internal/state_machine/state_machine.go` |
+| Basic Failure Counting | ✅ Completed | Implemented in `internal/counter/counter.go` |
+| Basic Error Handling | ✅ Completed | Implemented in `errors.go` |
+| Unit Tests for Core Components | ⚠️ Partial | Implemented for counters, needs expansion for other components |
+
+### Phase 2: Advanced Logic & Configuration
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Flexible Failure Thresholds | ✅ Completed | Supports ConsecutiveFailuresThreshold and FailureRateThreshold |
+| Half-Open Success Threshold | ✅ Completed | Implemented in CircuitBreaker.recordSuccess() |
+| Reset Timeout for Closed State | ✅ Completed | Implemented with timer in CircuitBreaker |
+| Advanced Error Filtering | ✅ Completed | Supports IsFailure function and IgnoredErrors list |
+| Callbacks/Event Hooks | ✅ Completed | Implemented in `callbacks.go` |
+| ExecuteWithFallback Method | ✅ Completed | Implemented in CircuitBreaker |
+| Comprehensive Unit Tests | ⚠️ Partial | More tests needed for advanced features |
+
+### Phase 3: Robustness, Observability & Polish
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Concurrency Safety | ✅ Completed | Thread-safe implementation with mutexes |
+| Context Integration | ✅ Completed | ExecuteContext and ExecuteWithFallbackContext methods |
+| Metrics Integration | ✅ Completed | GetMetrics() method provides internal state and counters |
+| Logging | ❌ Pending | No structured logging integration yet |
+| Graceful Shutdown | ✅ Completed | Close() method implemented |
+| Documentation | ⚠️ Partial | README.md created, needs more examples and detailed API docs |
+| Examples | ⚠️ Partial | Basic example implemented, fallback example needed |
+| Benchmarking | ❌ Pending | No benchmarks implemented yet |
+
+### Phase 4: Release & Maintenance
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Version Control & Tagging | ⚠️ Partial | Repository initialized, no version tags yet |
+| Public Release | ❌ Pending | Not yet released |
+| Continuous Integration | ❌ Pending | No CI setup yet |
+| Issue Tracking | ❌ Pending | No issue tracking setup yet |
+
+### Upcoming Tasks
+
+1. Complete unit tests for all components
+2. Implement benchmarks to measure performance
+3. Add structured logging integration
+4. Create fallback example
+5. Improve documentation with more examples and API details
+6. Set up CI/CD pipeline
+7. Prepare for public release with version tagging
