@@ -31,3 +31,17 @@ func (s State) String() string {
 		return fmt.Sprintf("Unknown State(%d)", s)
 	}
 }
+
+// IsValidTransition checks if a transition from one state to another is valid.
+func IsValidTransition(from, to State) bool {
+	switch from {
+	case Closed:
+		return to == Open
+	case Open:
+		return to == HalfOpen
+	case HalfOpen:
+		return to == Closed || to == Open
+	default:
+		return false
+	}
+}
