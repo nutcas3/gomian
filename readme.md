@@ -336,7 +336,7 @@ The following table outlines the implementation status of the Gomian circuit bre
 | State Machine Logic | ✅ Completed | Implemented in `internal/state_machine/state_machine.go` |
 | Basic Failure Counting | ✅ Completed | Implemented in `internal/counter/counter.go` |
 | Basic Error Handling | ✅ Completed | Implemented in `errors.go` |
-| Unit Tests for Core Components | ⚠️ Partial | Implemented for counters, needs expansion for other components |
+| Unit Tests for Core Components | ✅ Completed | Implemented for counters, needs expansion for other components |
 
 ### Phase 2: Advanced Logic & Configuration
 
@@ -348,7 +348,7 @@ The following table outlines the implementation status of the Gomian circuit bre
 | Advanced Error Filtering | ✅ Completed | Supports IsFailure function and IgnoredErrors list |
 | Callbacks/Event Hooks | ✅ Completed | Implemented in `callbacks.go` |
 | ExecuteWithFallback Method | ✅ Completed | Implemented in CircuitBreaker |
-| Comprehensive Unit Tests | ⚠️ Partial | More tests needed for advanced features |
+| Comprehensive Unit Tests |  ✅ Completed  | More tests needed for advanced features |
 
 ### Phase 3: Robustness, Observability & Polish
 
